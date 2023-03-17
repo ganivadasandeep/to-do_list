@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+  <head>    
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
+    <title>TO Do List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet"> 
+    <style> 
+        body{
+            background-color: #000;
+            color: #fff;
+            padding-top: 5%;
+            font-family: 'Courier Prime', monospace;
+        }
+        .taskcreate{
+            display: flex;
+            padding: 1.5%;
+            background-color: #6ca0f5;
+            box-shadow: 0 14px 28px #6ca0f5, 0 10px 10px#6ca0f5;            
+            color: #000;
+            width: 60%;
+            min-width: 300px;
+            max-width: 460px;
+            height: fit-content;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 5px;                       
+            margin: 0 auto;           
+            z-index: 20;             
+        }
+        form{
+            display: flex !important;                        
+            color: #000;
+            padding: 0.5%;
+            border-radius: 2px;            
+        }
+        .fa-calendar-plus{
+            font-size: 1.8em;   
+            border-radius: 3px;            
+            padding: 1% 1% 1% 2%;
+            margin: 1%;
+            color: #fff;
+            cursor: pointer;
+        }
+        input{
+            border-radius: 3px;
+            border: 1px solid black;
+        }
+        input:nth-child(1){
+            border-radius: 3px;
+            border: 1px solid #6ca0f5;
+        }
+        .showtasks{            
+            color: #000;
+            width: 60%;
+            min-width: 300px;
+            max-width: 460px;
+            height: auto;  
+            padding-top: 2%;                  
+            padding-bottom: 2%;                  
+            border-radius: 5px;                       
+            margin: 0 auto;    
+            background-color: #fff;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        .list{
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            margin: 3%;
+            padding-bottom: 1%;
+            border-bottom: 1px solid #6ca0f5;
+        }
+        .fa-trash-alt{
+            font-size: 1.5em;  
+            color: tomato;        
+            cursor: pointer;  
+        }
+        .fa-check{
+            font-size: 1.5em;
+        }
+        .edit,.delete{
+            margin-left: 2%;
+        }
+        .update{
+            display: none;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="container">        
+        <div class="taskcreate">
+            <form action="." method="post">
+                {% csrf_token %}
+                <input type="text" style="flex: 6;line-height:1.5em" placeholder="Add task" id="taskadd" name="tasknew">
+                <span onclick="addtask()" class="far fa-calendar-plus" style="flex: 1;"></span>
+            </form>            
+        </div>        
+    </div> 
+    <div class="showtasks">
+            
+    </div>
+    <div class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Modal title</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Modal body text goes here.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary">Save changes</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script>
+        function list(){
+            url = 'http://192.168.55.104:8000/models/tasks/';
+            fetch(url).then((resp)=>resp.json()).then(function(data){
+                //console.log('Data:', data);
+                var data = data;
+                $('.showtasks').html = '';                               
+                for(var i in data){  
+                    //console.log(`${data[i].id}`);
+                    title_code = `${data[i].title}`;
+                        if(data[i].done){
+                        title_code = `<del>${data[i].title}</del>`; } 
+                    var code = ` 
+                    <div style="order:${data[i].id}" id="${data[i].id}_div" class="list">
+                        <div style="flex: 2;"  class="fas fa-check"></div>
+                        <div style="flex: 8;cursor: pointer;" onclick="strike_task('${data[i].id}')" id="${data[i].id}_title">${title_code}</div>
+                        <input type="hidden" style="flex: 6;" size="10" id="${data[i].id}_text" placeholder="Add task" id="taskadd" name="tasknew">
+                        <div style="flex: 1;" id="${data[i].id}_edit" onclick="edit_task('${data[i].id}')" class="btn btn-sm btn-outline-primary edit mr-3 mb-2">Edit</div>
+                        <div style="flex: 1;" id="${data[i].id}_update" onclick="update_task('${data[i].id}')" class="btn btn-sm btn-outline-danger ml-3 mr-3 update">Done</div>
+                        <div style="flex: 2;" id="${data[i].id}_delete" data-toggle="modal" onclick="delete_task('${data[i].id}')" class="far fa-trash-alt delete"></div>
+                        <hr></div>`
+
+                    $('.showtasks').append(code);
+                }
+            });           
+        }
+        list();
+        function edit_task(id_base){
+            id = '#'+id_base+'_title';            
+            title = $(id).text();
+            $(id).toggle();
+            $('#'+id_base+'_edit').toggle();
+            $('#'+id_base+'_update').toggle();
+            $('#'+id_base+"_text").attr('type','text');
+            $('#'+id_base+"_text").focus();
+            $('#'+id_base+"_text").attr('value',title);            
+        }
+
+        function getCookie(name) {
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie !== '') {
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) {
+		            var cookie = cookies[i].trim();
+		            // Does this cookie string begin with the name we want?
+		            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+        }
+        
+        var csrftoken = getCookie('csrftoken');
+        
+        function update_task(id_base){
+            url = 'http://192.168.55.104:8000/models/detail/'+id_base+'/';
+            var title =  $('#'+id_base+"_text").val();
+            fetch(url,{
+				method:'POST',
+				headers:{
+					'Content-type':'application/json',
+					'X-CSRFToken':csrftoken,
+				},body:JSON.stringify({'title':title})}).then(function(){
+                    fetch(url).then((resp)=>resp.json()).then(function(data){
+                        title = data.title;
+                        $('#'+data.id+'_title').html(title);
+                        if(data.done){
+                        $('#'+data.id+'_title').html('<del>'+title+'</del>');}
+                        $(id).toggle();
+                        $('#'+id_base+'_edit').toggle();
+                        $('#'+id_base+'_update').toggle();
+                        $('#'+id_base+"_text").attr('type','hidden');                        
+                        $('#'+id_base+"_text").attr('value','');
+                    }); 
+                });
+        }      
+
+        function addtask(){
+            url = 'http://192.168.55.104:8000/models/tasks/';
+            title = $('#taskadd').val();
+            fetch(url,{
+				method:'POST',
+				headers:{
+					'Content-type':'application/json',
+					'X-CSRFToken':csrftoken,
+				},body:JSON.stringify({'title':title})}).then(function(){ 
+                    $('#taskadd').val('');                  
+                    fetch('http://192.168.55.104:8000/models/tasks/').then((resp)=>resp.json()).then(function(data){
+                        data = data[data.length-1];   
+                        title_code = `${data.title}`;
+                        if(data.done){
+                        title_code = `<del>${data.title}</del>`; } 
+                        var code = ` 
+                        <div style="order:${data.id}" id="${data.id}_div" class="list">
+                            <div style="flex: 2;" class="fas fa-check"></div>
+                            <div style="flex: 8;cursor: pointer;" onclick="strike_task('${data.id}')" id="${data.id}_title">${title_code}</div>
+                            <input type="hidden" style="flex: 6;" size="10" id="${data.id}_text" placeholder="Add task" id="taskadd" name="tasknew">
+                            <div style="flex: 1;" id="${data.id}_edit" onclick="edit_task('${data.id}')" class="btn btn-sm btn-outline-primary edit mr-3 mb-2">Edit</div>
+                            <div style="flex: 1;" id="${data.id}_update" onclick="update_task('${data.id}')" class="btn btn-sm btn-outline-danger ml-3 mr-3 update">Done</div>
+                            <div style="flex: 2;" id="${data.id}_delete" data-toggle="modal" onclick="delete_task('${data.id}')" class="far fa-trash-alt delete"></div>
+                            <hr></div>`
+
+                        $('.showtasks').append(code);               
+                        });
+                });                                 
+        }
+        function strike_task(id_base){
+            //$(this).replaceWith($('<h5>' + this.innerHTML + '</h5>'));
+            //$('#'+id_base+"_title").replaceWith($('<del>' + this.innerHTML + '</del>'));
+            var html_code = $('#'+id_base+'_title').html().trim();
+            if(html_code[0] != '<'){
+            var striken = '<del>'+html_code+'</del>';
+            $('#'+id_base+'_title').html(striken);
+            var done = true;
+            url = 'http://192.168.55.104:8000/models/detail/'+id_base+'/';
+            fetch(url,{
+                method:'POST',
+                headers:{
+                    'content-type':'application/json',
+                    'X-CSRFToken':csrftoken
+                },body:JSON.stringify({'done':done})
+            });
+        }
+            else{
+            var done = false;
+            var length_code = html_code.length - 6;
+            var text = html_code.slice(5,length_code);
+            $('#'+id_base+'_title').html(text);}
+            url = 'http://192.168.55.104:8000/models/detail/'+id_base+'/';
+            fetch(url,{
+                method:'POST',
+                headers:{
+                    'content-type':'application/json',
+                    'X-CSRFToken':csrftoken
+                },body:JSON.stringify({'done':done})
+            });
+        }
+
+        function delete_task(id_base){
+            url = 'http://192.168.55.104:8000/models/detail/'+id_base+'/';
+            fetch(url,{
+                method:'DELETE'
+            }).then(function(){
+                $('#'+id_base+'_div').remove();                
+            })
+        }
+
+    </script>
+  </body>
+</html>
